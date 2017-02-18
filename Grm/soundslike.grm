@@ -1,0 +1,508 @@
+## Licensed under the Apache License, Version 2.0 (the "License");
+## you may not use this file except in compliance with the License.
+## You may obtain a copy of the License at
+##
+##      http://www.apache.org/licenses/LICENSE-2.0
+##
+## Unless required by applicable law or agreed to in writing, software
+## distributed under the License is distributed on an "AS IS" BASIS,
+## WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+## See the License for the specific language governing permissions and
+## limitations under the License.
+##
+## Author: Richard Sproat (rws@xoba.com)
+
+## PATHS MAY BE CHANGED TO POINT TO THE LOCATION OF THE INSTALLATION.
+import 'Grm/byte.grm' as b;
+import 'Grm/morphology.grm' as m;
+
+## MUCH OF THIS STUFF IS EXPERIMENTAL AND LEFT OVER FROM PREVIOUS VERSIONS. THE
+## ONLY THING THAT IS REALLY USED CURRENTLY FROM HERE IS THE EDIT_DISTANCE
+
+## Basic phoneme set
+
+C = m.Select["S1" | "S2" | "F1" | "F2", m.PHONEMES];
+N = m.Select["N1" | "L1", m.PHONEMES];
+V = m.Select["V1" | "V2", m.PHONEMES];
+
+func D[expr] {
+  return expr : "";
+}
+
+## Morpheme templates
+
+export MONOSYLLABIC = C? V N? C?;
+
+export DISYLLABIC = MONOSYLLABIC MONOSYLLABIC?;
+
+## Definition of closeness
+
+rhyme = Optimize[((C | "") : (C | ""))? V N? C?];
+
+close_c1 =
+   ("p" : "b")
+ | ("t" : "d")
+ | ("k" : "g")
+ | C
+;
+
+close_c = close_c1 | Invert[close_c1];
+
+opt_son = (N : "") | ("" : N);
+
+V_free = (V | "") : (V | "");
+
+## What counts as a single close syllable, with optional inserted sonorant.
+
+pre_close = close_c? V opt_son? close_c?;
+
+## Same as pre_close, but rhyming is also sufficient
+
+pre_close_rhyme = pre_close | rhyme;
+
+pre_close_v_free = close_c? V_free opt_son? close_c?;
+
+## Same as pre_close, but vowels need not match or may match with null
+## (root-and-pattern case).
+
+export CLOSE = pre_close+;
+
+export CLOSE_RHYME = pre_close_rhyme+;
+
+export CLOSE_V_FREE = pre_close_v_free+;
+
+## Unrealistic, requiring exact match.
+
+export STRICT = DISYLLABIC;
+
+## Exact match except for vowels, which are free.
+
+pre_strict_v_free = C? V_free N? C?;
+
+export STRICT_V_FREE = pre_strict_v_free pre_strict_v_free?;
+
+## Forms for affixes, which are generally smaller than morphemes
+## NB: These are not currently used.
+
+export AFFIX_SYL = MONOSYLLABIC;
+
+export AFFIX_VC = V (N | C)?;
+
+export AFFIX_CV = (N | C)? V;
+
+edits = Optimize[
+    "p"
+  | ("p" : "t" <5>)
+  | ("p" : "k" <5>)
+  | ("p" : "b" <0.5>)
+  | ("p" : "d" <5>)
+  | ("p" : "g" <5>)
+  | ("p" : "f" <5>)
+  | ("p" : "s" <5>)
+  | ("p" : "x" <5>)
+  | ("p" : "v" <5>)
+  | ("p" : "z" <5>)
+  | ("p" : "G" <5>)
+  | ("p" : "m" <10>)
+  | ("p" : "n" <10>)
+  | ("p" : "N" <10>)
+  | ("p" : "r" <10>)
+  | ("p" : "l" <10>)
+  | ("p" : "y" <15>)
+  | ("p" : "w" <10>)
+  | ("p" : "a" <15>)
+  | ("p" : "e" <15>)
+  | ("p" : "i" <15>)
+  | ("p" : "o" <15>)
+  | ("p" : "u" <15>)
+  | ("p" : "y" <15>)
+  | ("p" : "O" <15>)
+  | ("p" : "I" <15>)
+  | ("p" : "&" <15>)
+  | "t"
+  | ("t" : "k" <5>)
+  | ("t" : "b" <5>)
+  | ("t" : "d" <0.5>)
+  | ("t" : "g" <5>)
+  | ("t" : "f" <5>)
+  | ("t" : "s" <5>)
+  | ("t" : "x" <5>)
+  | ("t" : "v" <5>)
+  | ("t" : "z" <5>)
+  | ("t" : "G" <5>)
+  | ("t" : "m" <10>)
+  | ("t" : "n" <10>)
+  | ("t" : "N" <10>)
+  | ("t" : "r" <10>)
+  | ("t" : "l" <10>)
+  | ("t" : "y" <15>)
+  | ("t" : "w" <10>)
+  | ("t" : "a" <15>)
+  | ("t" : "e" <15>)
+  | ("t" : "i" <15>)
+  | ("t" : "o" <15>)
+  | ("t" : "u" <15>)
+  | ("t" : "y" <15>)
+  | ("t" : "O" <15>)
+  | ("t" : "I" <15>)
+  | ("t" : "&" <15>)
+  | "k"
+  | ("k" : "b" <5>)
+  | ("k" : "d" <5>)
+  | ("k" : "g" <0.5>)
+  | ("k" : "f" <5>)
+  | ("k" : "s" <5>)
+  | ("k" : "x" <5>)
+  | ("k" : "v" <5>)
+  | ("k" : "z" <5>)
+  | ("k" : "G" <5>)
+  | ("k" : "m" <10>)
+  | ("k" : "n" <10>)
+  | ("k" : "N" <10>)
+  | ("k" : "r" <10>)
+  | ("k" : "l" <10>)
+  | ("k" : "y" <15>)
+  | ("k" : "w" <10>)
+  | ("k" : "a" <15>)
+  | ("k" : "e" <15>)
+  | ("k" : "i" <15>)
+  | ("k" : "o" <15>)
+  | ("k" : "u" <15>)
+  | ("k" : "y" <15>)
+  | ("k" : "O" <15>)
+  | ("k" : "I" <15>)
+  | ("k" : "&" <15>)
+  | "b"
+  | ("b" : "d" <5>)
+  | ("b" : "g" <5>)
+  | ("b" : "f" <5>)
+  | ("b" : "s" <5>)
+  | ("b" : "x" <5>)
+  | ("b" : "v" <5>)
+  | ("b" : "z" <5>)
+  | ("b" : "G" <5>)
+  | ("b" : "m" <10>)
+  | ("b" : "n" <10>)
+  | ("b" : "N" <10>)
+  | ("b" : "r" <10>)
+  | ("b" : "l" <10>)
+  | ("b" : "y" <15>)
+  | ("b" : "w" <10>)
+  | ("b" : "a" <15>)
+  | ("b" : "e" <15>)
+  | ("b" : "i" <15>)
+  | ("b" : "o" <15>)
+  | ("b" : "u" <15>)
+  | ("b" : "y" <15>)
+  | ("b" : "O" <15>)
+  | ("b" : "I" <15>)
+  | ("b" : "&" <15>)
+  | "d"
+  | ("d" : "g" <5>)
+  | ("d" : "f" <5>)
+  | ("d" : "s" <5>)
+  | ("d" : "x" <5>)
+  | ("d" : "v" <5>)
+  | ("d" : "z" <5>)
+  | ("d" : "G" <5>)
+  | ("d" : "m" <10>)
+  | ("d" : "n" <10>)
+  | ("d" : "N" <10>)
+  | ("d" : "r" <10>)
+  | ("d" : "l" <10>)
+  | ("d" : "y" <15>)
+  | ("d" : "w" <10>)
+  | ("d" : "a" <15>)
+  | ("d" : "e" <15>)
+  | ("d" : "i" <15>)
+  | ("d" : "o" <15>)
+  | ("d" : "u" <15>)
+  | ("d" : "y" <15>)
+  | ("d" : "O" <15>)
+  | ("d" : "I" <15>)
+  | ("d" : "&" <15>)
+  | "g"
+  | ("g" : "f" <5>)
+  | ("g" : "s" <5>)
+  | ("g" : "x" <5>)
+  | ("g" : "v" <5>)
+  | ("g" : "z" <5>)
+  | ("g" : "G" <5>)
+  | ("g" : "m" <10>)
+  | ("g" : "n" <10>)
+  | ("g" : "N" <10>)
+  | ("g" : "r" <10>)
+  | ("g" : "l" <10>)
+  | ("g" : "y" <15>)
+  | ("g" : "w" <10>)
+  | ("g" : "a" <15>)
+  | ("g" : "e" <15>)
+  | ("g" : "i" <15>)
+  | ("g" : "o" <15>)
+  | ("g" : "u" <15>)
+  | ("g" : "y" <15>)
+  | ("g" : "O" <15>)
+  | ("g" : "I" <15>)
+  | ("g" : "&" <15>)
+  | "f"
+  | ("f" : "s" <5>)
+  | ("f" : "x" <5>)
+  | ("f" : "v" <0.5>)
+  | ("f" : "z" <5>)
+  | ("f" : "G" <5>)
+  | ("f" : "m" <10>)
+  | ("f" : "n" <10>)
+  | ("f" : "N" <10>)
+  | ("f" : "r" <10>)
+  | ("f" : "l" <10>)
+  | ("f" : "y" <15>)
+  | ("f" : "w" <10>)
+  | ("f" : "a" <15>)
+  | ("f" : "e" <15>)
+  | ("f" : "i" <15>)
+  | ("f" : "o" <15>)
+  | ("f" : "u" <15>)
+  | ("f" : "y" <15>)
+  | ("f" : "O" <15>)
+  | ("f" : "I" <15>)
+  | ("f" : "&" <15>)
+  | "s"
+  | ("s" : "x" <5>)
+  | ("s" : "v" <5>)
+  | ("s" : "z" <0.5>)
+  | ("s" : "G" <5>)
+  | ("s" : "m" <10>)
+  | ("s" : "n" <10>)
+  | ("s" : "N" <10>)
+  | ("s" : "r" <10>)
+  | ("s" : "l" <10>)
+  | ("s" : "y" <15>)
+  | ("s" : "w" <10>)
+  | ("s" : "a" <15>)
+  | ("s" : "e" <15>)
+  | ("s" : "i" <15>)
+  | ("s" : "o" <15>)
+  | ("s" : "u" <15>)
+  | ("s" : "y" <15>)
+  | ("s" : "O" <15>)
+  | ("s" : "I" <15>)
+  | ("s" : "&" <15>)
+  | "x"
+  | ("x" : "v" <5>)
+  | ("x" : "z" <5>)
+  | ("x" : "G" <0.5>)
+  | ("x" : "m" <10>)
+  | ("x" : "n" <10>)
+  | ("x" : "N" <10>)
+  | ("x" : "r" <10>)
+  | ("x" : "l" <10>)
+  | ("x" : "y" <15>)
+  | ("x" : "w" <10>)
+  | ("x" : "a" <15>)
+  | ("x" : "e" <15>)
+  | ("x" : "i" <15>)
+  | ("x" : "o" <15>)
+  | ("x" : "u" <15>)
+  | ("x" : "y" <15>)
+  | ("x" : "O" <15>)
+  | ("x" : "I" <15>)
+  | ("x" : "&" <15>)
+  | "v"
+  | ("v" : "z" <5>)
+  | ("v" : "G" <5>)
+  | ("v" : "m" <10>)
+  | ("v" : "n" <10>)
+  | ("v" : "N" <10>)
+  | ("v" : "r" <10>)
+  | ("v" : "l" <10>)
+  | ("v" : "y" <15>)
+  | ("v" : "w" <10>)
+  | ("v" : "a" <15>)
+  | ("v" : "e" <15>)
+  | ("v" : "i" <15>)
+  | ("v" : "o" <15>)
+  | ("v" : "u" <15>)
+  | ("v" : "y" <15>)
+  | ("v" : "O" <15>)
+  | ("v" : "I" <15>)
+  | ("v" : "&" <15>)
+  | "z"
+  | ("z" : "G" <5>)
+  | ("z" : "m" <10>)
+  | ("z" : "n" <10>)
+  | ("z" : "N" <10>)
+  | ("z" : "r" <10>)
+  | ("z" : "l" <10>)
+  | ("z" : "y" <15>)
+  | ("z" : "w" <10>)
+  | ("z" : "a" <15>)
+  | ("z" : "e" <15>)
+  | ("z" : "i" <15>)
+  | ("z" : "o" <15>)
+  | ("z" : "u" <15>)
+  | ("z" : "y" <15>)
+  | ("z" : "O" <15>)
+  | ("z" : "I" <15>)
+  | ("z" : "&" <15>)
+  | "G"
+  | ("G" : "m" <10>)
+  | ("G" : "n" <10>)
+  | ("G" : "N" <10>)
+  | ("G" : "r" <10>)
+  | ("G" : "l" <10>)
+  | ("G" : "y" <15>)
+  | ("G" : "w" <10>)
+  | ("G" : "a" <15>)
+  | ("G" : "e" <15>)
+  | ("G" : "i" <15>)
+  | ("G" : "o" <15>)
+  | ("G" : "u" <15>)
+  | ("G" : "y" <15>)
+  | ("G" : "O" <15>)
+  | ("G" : "I" <15>)
+  | ("G" : "&" <15>)
+  | "m"
+  | ("m" : "n" <5>)
+  | ("m" : "N" <5>)
+  | ("m" : "r" <5>)
+  | ("m" : "l" <5>)
+  | ("m" : "y" <10>)
+  | ("m" : "w" <5>)
+  | ("m" : "a" <10>)
+  | ("m" : "e" <10>)
+  | ("m" : "i" <10>)
+  | ("m" : "o" <10>)
+  | ("m" : "u" <10>)
+  | ("m" : "y" <10>)
+  | ("m" : "O" <10>)
+  | ("m" : "I" <10>)
+  | ("m" : "&" <10>)
+  | "n"
+  | ("n" : "N" <5>)
+  | ("n" : "r" <5>)
+  | ("n" : "l" <5>)
+  | ("n" : "y" <10>)
+  | ("n" : "w" <5>)
+  | ("n" : "a" <10>)
+  | ("n" : "e" <10>)
+  | ("n" : "i" <10>)
+  | ("n" : "o" <10>)
+  | ("n" : "u" <10>)
+  | ("n" : "y" <10>)
+  | ("n" : "O" <10>)
+  | ("n" : "I" <10>)
+  | ("n" : "&" <10>)
+  | "N"
+  | ("N" : "r" <5>)
+  | ("N" : "l" <5>)
+  | ("N" : "y" <10>)
+  | ("N" : "w" <5>)
+  | ("N" : "a" <10>)
+  | ("N" : "e" <10>)
+  | ("N" : "i" <10>)
+  | ("N" : "o" <10>)
+  | ("N" : "u" <10>)
+  | ("N" : "y" <10>)
+  | ("N" : "O" <10>)
+  | ("N" : "I" <10>)
+  | ("N" : "&" <10>)
+  | "r"
+  | ("r" : "l" <5>)
+  | ("r" : "y" <10>)
+  | ("r" : "w" <5>)
+  | ("r" : "a" <10>)
+  | ("r" : "e" <10>)
+  | ("r" : "i" <10>)
+  | ("r" : "o" <10>)
+  | ("r" : "u" <10>)
+  | ("r" : "y" <10>)
+  | ("r" : "O" <10>)
+  | ("r" : "I" <10>)
+  | ("r" : "&" <10>)
+  | "l"
+  | ("l" : "y" <10>)
+  | ("l" : "w" <5>)
+  | ("l" : "a" <10>)
+  | ("l" : "e" <10>)
+  | ("l" : "i" <10>)
+  | ("l" : "o" <10>)
+  | ("l" : "u" <10>)
+  | ("l" : "y" <10>)
+  | ("l" : "O" <10>)
+  | ("l" : "I" <10>)
+  | ("l" : "&" <10>)
+  | "y"
+  | ("y" : "w" <10>)
+  | ("y" : "a" <5>)
+  | ("y" : "e" <5>)
+  | ("y" : "i" <5>)
+  | ("y" : "o" <5>)
+  | ("y" : "u" <5>)
+  | "y"
+  | ("y" : "O" <5>)
+  | ("y" : "I" <5>)
+  | ("y" : "&" <5>)
+  | "w"
+  | ("w" : "a" <10>)
+  | ("w" : "e" <10>)
+  | ("w" : "i" <10>)
+  | ("w" : "o" <10>)
+  | ("w" : "u" <10>)
+  | ("w" : "y" <10>)
+  | ("w" : "O" <10>)
+  | ("w" : "I" <10>)
+  | ("w" : "&" <10>)
+  | "a"
+  | ("a" : "e" <5>)
+  | ("a" : "i" <5>)
+  | ("a" : "o" <5>)
+  | ("a" : "u" <5>)
+  | ("a" : "y" <5>)
+  | ("a" : "O" <5>)
+  | ("a" : "I" <5>)
+  | ("a" : "&" <5>)
+  | "e"
+  | ("e" : "i" <5>)
+  | ("e" : "o" <5>)
+  | ("e" : "u" <5>)
+  | ("e" : "y" <5>)
+  | ("e" : "O" <5>)
+  | ("e" : "I" <5>)
+  | ("e" : "&" <5>)
+  | "i"
+  | ("i" : "o" <5>)
+  | ("i" : "u" <5>)
+  | ("i" : "y" <5>)
+  | ("i" : "O" <5>)
+  | ("i" : "I" <5>)
+  | ("i" : "&" <5>)
+  | "o"
+  | ("o" : "u" <5>)
+  | ("o" : "y" <5>)
+  | ("o" : "O" <5>)
+  | ("o" : "I" <5>)
+  | ("o" : "&" <5>)
+  | "u"
+  | ("u" : "y" <5>)
+  | ("u" : "O" <5>)
+  | ("u" : "I" <5>)
+  | ("u" : "&" <5>)
+  | "y"
+  | ("y" : "O" <5>)
+  | ("y" : "I" <5>)
+  | ("y" : "&" <5>)
+  | "O"
+  | ("O" : "I" <5>)
+  | ("O" : "&" <5>)
+  | "I"
+  | ("I" : "&" <5>)
+  | (D[C] <10>)
+# Vowel deletion must be weighted so that you can't sneak in a substitution by
+# deletion and then insertion.
+  | (D[V] <5>)
+  | (D[N] <2>)]
+;
+
+export EDIT_DISTANCE = Optimize[
+  (edits | Invert[edits])*]
+;
