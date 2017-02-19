@@ -87,6 +87,11 @@ export SESQUISYLLABLE = Optimize[sesqui? syllable];
 
 export MONOSYLLABLE =  syllable;
 
+# If this is optimized then it tends to produce many fewer monosyllabic
+# morphemes and many more disyllabic morphemes, due to the rather imperfect way
+# in which randgen works. I recommend leaving this as is. If you change it to
+# Optimize then this will actually strengthen the results reported in the paper
+# since the disyllabic case will evolve even fewer phonetic spellings.
 export DISYLLABLE =  syllable{1,2};
 
 ## Morphology
