@@ -14,14 +14,14 @@
 ## Author: Richard Sproat (rws@xoba.com)
 
 """Defines the lexicon, morphemes, and concepts associated with morphemes.
+
+Then runs the simulation.
 """
 
 # NB: "semantics" and "concept" are used interchangeably
 
 # TODO(rws): This seems to generate rather too many morphemes
 # associated with a particular concept (e.g. 36 for TEMPLE).
-
-# TODO(rws): Correct class method names to lower case standard.
 
 import builder
 import concepts
