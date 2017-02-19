@@ -1,7 +1,7 @@
 This is code used in the simulations for the work reported in the forthcoming paper:
 
-Sproat, Richard. 2017. A Computational Model of the Discovery of
-Writing. <em>Written Language and Literacy</em>.
+Sproat, Richard. 2017. <a href="http://rws.xoba.com/wll.pdf">A Computational Model of the Discovery of
+Writing.</a> <em>Written Language and Literacy</em>, to appear.
 
 It depends on the following software:
 
