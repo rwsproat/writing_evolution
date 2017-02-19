@@ -44,8 +44,7 @@ BASE_MORPH=DISYLLABLE ./experiments.sh
 </pre>
 
 The script is set up to run 5 experiments with 10 iterations each. In the first
-iteration it attempts to build the Thrax grammars in Grm, and places the needed
-finite-state transducers in Data.
+iteration it builds the Thrax grammars in Grm (if they are not already built from a previous run).
 
 The results of each experiment will be placed in subdirectories of
 
