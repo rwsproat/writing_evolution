@@ -67,3 +67,5 @@ experiment. Thus:
        864	  0.716435	  201	0.32	  125	0.20	  293	0.47
        864	  0.739583	  209	0.33	  132	0.21	  298	0.47
 </pre>
+
+Where "morphs" is the number of morphs, "prop spell" is the proportion of morphs that receive a spelling on a given iteration, "semphon" is the proportion of spellings that are "semantic-phonetic" (i.e. having a graphic expression that encodes both semantic and the phonetic information), "phon" is the proportion that are purely phonetic and "sem" is the proportion that is purely semantic. See the paper for further details.
